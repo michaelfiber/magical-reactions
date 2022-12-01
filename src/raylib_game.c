@@ -81,13 +81,15 @@ int main(void)
 	InitFontStyle();
 
     // Setup and init first screen
-    currentScreen = LOGO;
-    InitLogoScreen();
+    currentScreen = GAMEPLAY;
+    InitGameplayScreen();
+
+    //InitLogoScreen();
 
 #if defined(PLATFORM_WEB)
-    emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
+    emscripten_set_main_loop(UpdateDrawFrame, 0, 1);    // set fps to 0 to use requestAnimationFrame
 #else
-    SetTargetFPS(60);       // Set our game to run at 60 frames-per-second
+    SetTargetFPS(0);       // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -225,10 +227,6 @@ static void DrawTransition(void)
 // Update and draw game frame
 static void UpdateDrawFrame(void)
 {
-	if (IsMouseButtonPressed(0)) {
-		int pattern[] = {100, 100, 100};
-		Vibrate(pattern, 3);
-	}
 
     // Update
     //----------------------------------------------------------------------------------
@@ -301,8 +299,6 @@ static void UpdateDrawFrame(void)
         if (onTransition) DrawTransition();
 
         //DrawFPS(10, 10);
-
-		DrawText(TextFormat("Beta %f\nGamma %f", beta, gamma), 20, 20, 20, BLACK);
 
     EndDrawing();
     //----------------------------------------------------------------------------------

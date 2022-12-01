@@ -44,6 +44,7 @@ html, body {
 #canvas {
 	min-width: 256px;
 	min-height: 256px;
+	image-rendering: pixelated;
 }
 
 
