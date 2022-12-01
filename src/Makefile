@@ -375,12 +375,12 @@ endif
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
 	fontstyle.c \
-    raylib_game.c \
-    screen_logo.c \
-    screen_title.c \
-    screen_options.c \
-    screen_gameplay.c \
-    screen_ending.c
+	raylib_game.c \
+	screen_ending.c \
+	screen_gameplay.c \
+	screen_logo.c \
+	screen_options.c \
+	screen_title.c 
 
 # Define all object files from source files
 OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))
