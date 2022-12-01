@@ -1,4 +1,4 @@
-const cacheName = "RAYLIB_GAME_TEMPLATE_FORK_CACHE_NAME";
+const cacheName = "cache_name_1669929169";
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(caches.open(cacheName));

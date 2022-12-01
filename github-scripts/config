@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-PWA=true
-RELEASE_LINK_IN_HTML=true
-OVERRIDE_PWA_PATH=false
