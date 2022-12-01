@@ -1,0 +1,66 @@
+@media (orientation: portrait) {
+	#main {
+		flex-direction: column;
+		justify-content: flex-start;
+	}
+
+	#canvas {
+		width: 100%;
+	}
+
+	#virtual-gamepad {
+		display: flex;
+	}
+}
+
+@media (orientation: landscape) {
+	#main {
+		flex-direction: row;
+		justify-content: center;
+	}
+
+	#canvas {
+		height: 100%;
+	}
+
+	#virtual-gamepad {
+		display: none;
+	}
+}
+
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	background-color: gray;
+}
+
+#main {
+	display: flex;
+	align-items: flex-start;
+	height: 100%;
+}
+
+#canvas {
+	min-width: 256px;
+	min-height: 256px;
+}
+
+
+#virtual-gamepad {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	top: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+}
+
+#amdfc-controller {
+	width: 80%;
+	margin-left: 10%;
+	margin-right: 10%;
+	height: auto;
+}
