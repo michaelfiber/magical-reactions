@@ -99,9 +99,26 @@ int GetBiome(int elevation)
 	return biome;
 }
 
-void GetLocalMap(Location worldLoc, int elevation)
+/**
+ * @brief Get the Local Map object - 256x256 grid of 32x32 tiles that represent the gameplay map.
+ *
+ * @param worldLoc
+ * @param pos
+ * @param elevation
+ */
+LocalWorldNode *GetLocalMap(Location worldLoc, Vector2 pos, int elevation)
 {
+	srand(worldLoc.y * 256 + worldLoc.x);
+
 	int biome = GetBiome(elevation);
+	LocalWorldNode *localMap = (LocalWorldNode *)MemAlloc(sizeof(LocalWorldNode) * 256 * 256);
+	for (int i = 0; i < 256 * 256; i++)
+	{
+		localMap[i].passable = (biome != BIOME_WATER);
+		localMap[i].tile = rand() % 8;
+	}
+
+	return localMap;
 }
 
 Image GenerateTileMap()
@@ -122,7 +139,7 @@ Image GenerateTileMap()
 			hsv.x += (rand() % 20) - 10;
 
 			for (int i = 0; i < 32 * 32; i++)
-			{	
+			{
 				float z = hsv.z * ((rand() % 20) + 80) / 100.0;
 				pixels[currentPixel] = ColorFromHSV(hsv.x, hsv.y, z);
 				currentPixel++;
@@ -135,10 +152,7 @@ Image GenerateTileMap()
 		.width = width,
 		.height = height,
 		.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
-		.mipmaps = 1
-	};
-
-	TraceLog(LOG_INFO, TextFormat("tilemape %i %i", width, height));
+		.mipmaps = 1};
 
 	return img;
 }

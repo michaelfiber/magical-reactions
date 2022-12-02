@@ -25,6 +25,12 @@ typedef struct
 	Location local;
 } WorldThing;
 
+typedef struct 
+{
+	int tile;
+	bool passable;
+} LocalWorldNode;
+
 int GetBiome(int elevation);
 Color GetBiomeColor(int biome);
 Image GenerateTileMap();
