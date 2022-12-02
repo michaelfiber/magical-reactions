@@ -48,6 +48,8 @@ Color GetBiomeColor(int biome)
 	return color;
 }
 
+int heights[256 * 256] = {0};
+
 Image GenerateWorldImage(Image heightMap)
 {
 	Color *colorData = (Color *)MemAlloc(sizeof(Color) * 256 * 256);
@@ -57,6 +59,7 @@ Image GenerateWorldImage(Image heightMap)
 	for (int i = 0; i < 256 * 256; i++)
 	{
 		int biome = GetBiome(pixels[i]);
+		heights[i] = pixels[i];
 		colorData[i] = GetBiomeColor(biome);
 	}
 
@@ -106,9 +109,12 @@ int GetBiome(int elevation)
  * @param pos
  * @param elevation
  */
-void FillLocalMap(Location worldLoc, Vector2 pos, int elevation, LocalWorldNode *localMap)
+void FillLocalMap(Location worldLoc, Vector2 pos, LocalWorldNode *localMap)
 {
+	int elevation = heights[worldLoc.y * 256 + worldLoc.x];
+
 	srand(worldLoc.y * 256 + worldLoc.x);
+	TraceLog(LOG_INFO, TextFormat("Elevation %i", elevation));
 
 	int biome = GetBiome(elevation);
 	for (int i = 0; i < 256 * 256; i++)
@@ -116,6 +122,16 @@ void FillLocalMap(Location worldLoc, Vector2 pos, int elevation, LocalWorldNode 
 		localMap[i].passable = (biome != BIOME_WATER);
 		localMap[i].tile = rand() % 8;
 	}
+}
+
+int GetElevationAtWorldLoc(Location worldLoc)
+{
+	return heights[worldLoc.y * 256 + worldLoc.x];
+}
+
+int GetBiomeAtWorldLocation(Location worldLoc)
+{
+	return GetBiome(GetElevationAtWorldLoc(worldLoc));
 }
 
 Image GenerateTileMap()

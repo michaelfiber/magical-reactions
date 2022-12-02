@@ -93,13 +93,14 @@ void InitGameplayScreen(void)
 	player.world.x = 128;
 	player.world.y = 128;
 
-	player.pos.x = 128;
-	player.pos.y = 128;
+	player.pos.x = 10;
+	player.pos.y = 10;
 
 	mode = MODE_LOCAL;
 
 	int *data = heightMap.data;
-	FillLocalMap(player.world, player.pos, data[player.world.y * 256 + player.world.x], &localNodes);
+
+	FillLocalMap(player.world, player.pos, &localNodes);
 }
 
 // Gameplay Screen Update logic
@@ -122,42 +123,62 @@ void UpdateGameplayScreen(void)
 	}
 }
 
+void DrawWorld()
+{
+	DrawTexture(worldTexture, 0, 0, WHITE);
+	DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
+}
+
+void DrawLocal()
+{
+	int biome = GetBiomeAtWorldLocation(player.world);
+
+	Vector2 camera = { 0, 0 };
+	int localDimension = 32 * 256;
+
+	// try to center the camera on the player.
+	camera.x = player.pos.x - localDimension / 2; 
+	if (camera.x < 0) camera.x = 0;
+	else if (camera.x > localDimension - 256) camera.x = localDimension - 256;
+
+	camera.y = player.pos.y - localDimension / 2;
+	if (camera.y < 0) camera.y = 0;
+	else if (camera.y > localDimension - 256) camera.y = localDimension - 256;
+
+
+	for (int y = 0; y < 256; y++)
+	{
+		for (int x = 0; x < 256; x++)
+		{
+			if (x * 32 > GetScreenWidth() || y * 32 > GetScreenHeight())
+				continue;
+
+			DrawTexturePro(tileMap, (Rectangle){0, ((biome * 8) + localNodes[y * 256 + x].tile) * 32, 32, 32}, (Rectangle){x * 32, y * 32, 32, 32}, (Vector2){0, 0}, 0.0f, WHITE);
+		}
+	}
+	DrawStyleTextAnchored(TextFormat("biome %i", biome), (FontAnchors){-1, -1, -1, 10});
+
+	DrawRectangleLines(player.pos.x, player.pos.y, 32, 32, PURPLE);
+}
+
 // Gameplay Screen Draw logic
 void DrawGameplayScreen(void)
 {
 	// TODO: Draw GAMEPLAY screen here!
 	ClearBackground(BLACK);
 
+	SetCurrentFontStyle("gameplaysmall");
+
 	switch (mode)
 	{
 	case MODE_WORLD:
-		DrawTexture(worldTexture, 0, 0, WHITE);
-		DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
+		DrawWorld();
 		break;
-	case MODE_LOCAL:
-		;;
-		int *data = heightMap.data;
-		int biome = data[player.world.y * 256 + player.world.x];
-		for (int y = 0; y < 256; y++)
-		{
-			for (int x = 0; x < 256; x++)
-			{
-				if (x * 32 > GetScreenWidth())
-					continue;
-
-				Rectangle src = {
-					0,
-					biome * 8 + localNodes[y * 256 + x].tile,
-					32,
-					32};
-
-				DrawTexturePro(tileMap, src, (Rectangle){ x * 32, y * 32, 32, 32}, (Vector2){ 0, 0 }, 0.0f, WHITE);
-			}
-		}
+	case MODE_LOCAL:;
+		DrawLocal();
 		break;
 	}
 
-	SetCurrentFontStyle("gameplaysmall");
 	DrawStyleTextAnchored(TextFormat("wrld: %i/%i", player.world.x, player.world.y), (FontAnchors){10, -1, -1, 10});
 	DrawStyleTextAnchored(TextFormat("pos:  %f/%f", player.pos.x, player.pos.y), (FontAnchors){-1, -1, 10, 10});
 }
