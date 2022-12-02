@@ -23,10 +23,15 @@
  *
  **********************************************************************************************/
 
+#include "stdlib.h"
 #include "raylib.h"
 #include "screens.h"
 #include "fontstyle.h"
 #include "worldgen.h"
+
+#define MODE_WORLD 0
+#define MODE_REGION 1
+#define MODE_LOCAL 2
 
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
@@ -40,15 +45,20 @@ static int finishScreen = 0;
 
 typedef struct
 {
+    Location world;
+    Location local;
     Vector2 pos;
-    WorldThing thing;
 } Player;
 
 static Player player = {0};
 
-Texture2D tiles = {0};
+Texture2D heightmap = {0};
+Texture2D worldTexture = {0};
+Image worldImg = {0};
 
 static int worldSeed = 12345;
+static int mode = MODE_WORLD;
+
 
 // Gameplay Screen Initialization logic
 void InitGameplayScreen(void)
@@ -66,9 +76,16 @@ void InitGameplayScreen(void)
     LoadFontStyle("gameplaysmall", small);
     SetCurrentFontStyle("gameplaysmall");
 
-	getWorld(worldSeed);
-	Image img = genTiles(worldSeed);
-	tiles = LoadTextureFromImage(img);
+    getWorld(worldSeed);
+
+    GenerateWorldImages(worldSeed, &heightmap, &worldImg);
+
+    worldTexture = LoadTextureFromImage(worldImg);
+
+    player.world.x = 128;
+    player.world.y = 128;
+
+    mode = MODE_WORLD;
 }
 
 // Gameplay Screen Update logic
@@ -90,12 +107,17 @@ void DrawGameplayScreen(void)
     // TODO: Draw GAMEPLAY screen here!
     ClearBackground(BLUE);
 
-	DrawTexture(tiles, 0, 0, WHITE);
+    switch (mode)
+    {
+    case MODE_WORLD:
+        DrawTexture(worldTexture, 0, 0, WHITE);
+        DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
+        break;
+    }
 
     SetCurrentFontStyle("gameplaysmall");
-    DrawStyleTextAnchored(TextFormat("wrld: %i/%i", player.thing.world.x, player.thing.world.y), (FontAnchors){10, -1, -1, 10});
-    DrawStyleTextAnchored(TextFormat("regn: %i/%i", player.thing.region.x, player.thing.region.y), (FontAnchors){-1, -1, -1, 10});
-    DrawStyleTextAnchored(TextFormat("locl: %i/%i", player.thing.local.x, player.thing.local.y), (FontAnchors){-1, -1, 10, 10});
+    DrawStyleTextAnchored(TextFormat("wrld: %i/%i", player.world.x, player.world.y), (FontAnchors){10, -1, -1, 10});
+    DrawStyleTextAnchored(TextFormat("locl: %i/%i", player.local.x, player.local.y), (FontAnchors){-1, -1, 10, 10});
 }
 
 // Gameplay Screen Unload logic
@@ -103,7 +125,7 @@ void UnloadGameplayScreen(void)
 {
     // TODO: Unload GAMEPLAY screen variables here!
     UnloadFontStyle("gameplaysmall");
-	UnloadTexture(tiles);
+    UnloadTexture(worldTexture);
 }
 
 // Gameplay Screen should finish?

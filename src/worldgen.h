@@ -3,6 +3,13 @@
 
 #include "raylib.h"
 
+#define BIOME_WATER 0
+#define BIOME_SAND 	1
+#define BIOME_GRASS 2
+#define BIOME_ROCKY 3
+#define BIOME_SNOW 	4
+#define BIOME_PEAK 	5
+
 typedef struct
 {
 	int x;
@@ -16,7 +23,8 @@ typedef struct
 	Location local;
 } WorldThing;
 
+int GetBiome(int elevation);
 void getWorld(int worldSeed);
-Image genTiles(int worldSeed);
+void GenerateWorldImages(int worldSeed, Image *heightMap, Image *color);
 
 #endif
