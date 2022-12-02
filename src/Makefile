@@ -375,6 +375,7 @@ endif
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
 	fontstyle.c \
+	worldgen.c \
 	raylib_game.c \
 	screen_ending.c \
 	screen_gameplay.c \

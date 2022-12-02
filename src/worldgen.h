@@ -16,19 +16,7 @@ typedef struct
 	Location local;
 } WorldThing;
 
-int *getWorld()
-{
-	int *world = (int *)MemAlloc(sizeof(int) * 256 * 256);
-
-	for (int y = 0; y < 256; y++)
-	{
-		for (int x = 0; x < 256; x++)
-		{
-			world[y * 256 + x] = 0;
-		}
-	}
-
-	return world;
-}
+void getWorld(int worldSeed);
+Image genTiles(int worldSeed);
 
 #endif

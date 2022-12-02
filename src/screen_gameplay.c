@@ -27,13 +27,12 @@
 #include "screens.h"
 #include "fontstyle.h"
 #include "worldgen.h"
+
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
 //----------------------------------------------------------------------------------
 static int framesCounter = 0;
 static int finishScreen = 0;
-
-Texture2D raylibLogo = {0};
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Definition
@@ -46,6 +45,10 @@ typedef struct
 } Player;
 
 static Player player = {0};
+
+Texture2D tiles = {0};
+
+static int worldSeed = 12345;
 
 // Gameplay Screen Initialization logic
 void InitGameplayScreen(void)
@@ -62,6 +65,10 @@ void InitGameplayScreen(void)
 
     LoadFontStyle("gameplaysmall", small);
     SetCurrentFontStyle("gameplaysmall");
+
+	getWorld(worldSeed);
+	Image img = genTiles(worldSeed);
+	tiles = LoadTextureFromImage(img);
 }
 
 // Gameplay Screen Update logic
@@ -83,6 +90,8 @@ void DrawGameplayScreen(void)
     // TODO: Draw GAMEPLAY screen here!
     ClearBackground(BLUE);
 
+	DrawTexture(tiles, 0, 0, WHITE);
+
     SetCurrentFontStyle("gameplaysmall");
     DrawStyleTextAnchored(TextFormat("wrld: %i/%i", player.thing.world.x, player.thing.world.y), (FontAnchors){10, -1, -1, 10});
     DrawStyleTextAnchored(TextFormat("regn: %i/%i", player.thing.region.x, player.thing.region.y), (FontAnchors){-1, -1, -1, 10});
@@ -94,7 +103,7 @@ void UnloadGameplayScreen(void)
 {
     // TODO: Unload GAMEPLAY screen variables here!
     UnloadFontStyle("gameplaysmall");
-    UnloadTexture(raylibLogo);
+	UnloadTexture(tiles);
 }
 
 // Gameplay Screen should finish?
