@@ -57,6 +57,8 @@ Image tileMapImage = {0};
 Texture2D worldTexture = {0};
 Texture2D tileMap = {0};
 
+LocalWorldNode localNodes[256 * 256] = {0};
+
 /**
  * @brief Used during InitGameplayScreen to randomize worldwide assets.
  */
@@ -95,6 +97,9 @@ void InitGameplayScreen(void)
 	player.pos.y = 128;
 
 	mode = MODE_LOCAL;
+
+	int *data = heightMap.data;
+	FillLocalMap(player.world, player.pos, data[player.world.y * 256 + player.world.x], &localNodes);
 }
 
 // Gameplay Screen Update logic
@@ -130,8 +135,25 @@ void DrawGameplayScreen(void)
 		DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
 		break;
 	case MODE_LOCAL:
-		DrawTexture(tileMap, 0, 0, WHITE);
-		DrawRectangleLines(0, 0, tileMap.width, tileMap.height, RED);
+		;;
+		int *data = heightMap.data;
+		int biome = data[player.world.y * 256 + player.world.x];
+		for (int y = 0; y < 256; y++)
+		{
+			for (int x = 0; x < 256; x++)
+			{
+				if (x * 32 > GetScreenWidth())
+					continue;
+
+				Rectangle src = {
+					0,
+					biome * 8 + localNodes[y * 256 + x].tile,
+					32,
+					32};
+
+				DrawTexturePro(tileMap, src, (Rectangle){ x * 32, y * 32, 32, 32}, (Vector2){ 0, 0 }, 0.0f, WHITE);
+			}
+		}
 		break;
 	}
 

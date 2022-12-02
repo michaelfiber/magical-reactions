@@ -35,5 +35,6 @@ int GetBiome(int elevation);
 Color GetBiomeColor(int biome);
 Image GenerateTileMap();
 Image GenerateWorldImage(Image heightMap);
+void FillLocalMap(Location worldLoc, Vector2 pos, int elevation, LocalWorldNode *localMap);
 
 #endif

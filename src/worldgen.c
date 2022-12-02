@@ -106,19 +106,16 @@ int GetBiome(int elevation)
  * @param pos
  * @param elevation
  */
-LocalWorldNode *GetLocalMap(Location worldLoc, Vector2 pos, int elevation)
+void FillLocalMap(Location worldLoc, Vector2 pos, int elevation, LocalWorldNode *localMap)
 {
 	srand(worldLoc.y * 256 + worldLoc.x);
 
 	int biome = GetBiome(elevation);
-	LocalWorldNode *localMap = (LocalWorldNode *)MemAlloc(sizeof(LocalWorldNode) * 256 * 256);
 	for (int i = 0; i < 256 * 256; i++)
 	{
 		localMap[i].passable = (biome != BIOME_WATER);
 		localMap[i].tile = rand() % 8;
 	}
-
-	return localMap;
 }
 
 Image GenerateTileMap()
