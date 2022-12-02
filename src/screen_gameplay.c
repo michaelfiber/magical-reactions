@@ -46,6 +46,7 @@ typedef struct
 {
 	Location world;
 	Vector2 pos;
+	float speed;
 } Player;
 
 static Player player = {0};
@@ -65,6 +66,8 @@ LocalWorldNode localNodes[256 * 256] = {0};
 static int worldSeed = 12345;
 
 static int mode = MODE_WORLD;
+
+Camera2D camera = {0};
 
 // Gameplay Screen Initialization logic
 void InitGameplayScreen(void)
@@ -93,14 +96,20 @@ void InitGameplayScreen(void)
 	player.world.x = 128;
 	player.world.y = 128;
 
-	player.pos.x = 10;
+	player.pos.x = 8140;
 	player.pos.y = 10;
+
+	player.speed = 100.0f;
 
 	mode = MODE_LOCAL;
 
 	int *data = heightMap.data;
 
 	FillLocalMap(player.world, player.pos, &localNodes);
+
+	camera.zoom = 1.0f;
+	camera.offset.x = 128;
+	camera.offset.y = 128;
 }
 
 // Gameplay Screen Update logic
@@ -121,6 +130,33 @@ void UpdateGameplayScreen(void)
 		if (mode > MODE_LOCAL)
 			mode = MODE_WORLD;
 	}
+
+	if (IsKeyDown(KEY_UP))
+	{
+		player.pos.y -= GetFrameTime() * player.speed;
+	}
+	else if (IsKeyDown(KEY_DOWN))
+	{
+		player.pos.y += GetFrameTime() * player.speed;
+	}
+	else if (IsKeyDown(KEY_LEFT))
+	{
+		player.pos.x -= GetFrameTime() * player.speed;
+	}
+	else if (IsKeyDown(KEY_RIGHT))
+	{
+		player.pos.x += GetFrameTime() * player.speed;
+	}
+
+	camera.target.x = (int)(player.pos.x + 16);
+	camera.target.y = (int)(player.pos.y + 16);
+
+	if (camera.target.x < 128)
+		camera.target.x = 128;
+	if (camera.target.y < 128)
+		camera.target.y = 128;
+
+	
 }
 
 void DrawWorld()
@@ -133,32 +169,21 @@ void DrawLocal()
 {
 	int biome = GetBiomeAtWorldLocation(player.world);
 
-	Vector2 camera = { 0, 0 };
-	int localDimension = 32 * 256;
+	int drawCount = 0;
 
-	// try to center the camera on the player.
-	camera.x = player.pos.x - localDimension / 2; 
-	if (camera.x < 0) camera.x = 0;
-	else if (camera.x > localDimension - 256) camera.x = localDimension - 256;
-
-	camera.y = player.pos.y - localDimension / 2;
-	if (camera.y < 0) camera.y = 0;
-	else if (camera.y > localDimension - 256) camera.y = localDimension - 256;
-
-
-	for (int y = 0; y < 256; y++)
+	BeginMode2D(camera);
+	for (int y = (camera.target.y - 128) / 32; y < 256 && y < (camera.target.y - 128) / 32 + 8; y++)
 	{
-		for (int x = 0; x < 256; x++)
+		for (int x = (camera.target.x - 128) / 32; x < 256 && x < (camera.target.x - 128) / 32 + 8; x++)
 		{
-			if (x * 32 > GetScreenWidth() || y * 32 > GetScreenHeight())
-				continue;
-
 			DrawTexturePro(tileMap, (Rectangle){0, ((biome * 8) + localNodes[y * 256 + x].tile) * 32, 32, 32}, (Rectangle){x * 32, y * 32, 32, 32}, (Vector2){0, 0}, 0.0f, WHITE);
+			drawCount++;
 		}
 	}
-	DrawStyleTextAnchored(TextFormat("biome %i", biome), (FontAnchors){-1, -1, -1, 10});
-
 	DrawRectangleLines(player.pos.x, player.pos.y, 32, 32, PURPLE);
+	EndMode2D();
+
+	DrawStyleTextAnchored(TextFormat("biome %i draw count %i", biome, drawCount), (FontAnchors){-1, -1, -1, 10});
 }
 
 // Gameplay Screen Draw logic

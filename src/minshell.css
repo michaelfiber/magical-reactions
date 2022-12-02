@@ -47,6 +47,13 @@ html, body {
 	image-rendering: pixelated;
 }
 
+#mobile-controls {
+	display: none;
+}
+
+#output {
+	display: none;
+}
 
 #virtual-gamepad {
 	position: fixed;
