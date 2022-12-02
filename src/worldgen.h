@@ -10,6 +10,8 @@
 #define BIOME_SNOW 	4
 #define BIOME_PEAK 	5
 
+#define BIOME_COUNT 6
+
 typedef struct
 {
 	int x;
@@ -24,7 +26,8 @@ typedef struct
 } WorldThing;
 
 int GetBiome(int elevation);
-void getWorld(int worldSeed);
-void GenerateWorldImages(int worldSeed, Image *heightMap, Image *color);
+Color GetBiomeColor(int biome);
+Image GenerateTileMap();
+Image GenerateWorldImage(Image heightMap);
 
 #endif

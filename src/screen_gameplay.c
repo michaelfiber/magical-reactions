@@ -30,8 +30,7 @@
 #include "worldgen.h"
 
 #define MODE_WORLD 0
-#define MODE_REGION 1
-#define MODE_LOCAL 2
+#define MODE_LOCAL 1
 
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
@@ -45,91 +44,118 @@ static int finishScreen = 0;
 
 typedef struct
 {
-    Location world;
-    Location local;
-    Vector2 pos;
+	Location world;
+	Vector2 pos;
 } Player;
 
 static Player player = {0};
 
-Texture2D heightmap = {0};
-Texture2D worldTexture = {0};
+Image heightMap = {0};
 Image worldImg = {0};
+Image tileMapImage = {0};
 
+Texture2D worldTexture = {0};
+Texture2D tileMap = {0};
+
+/**
+ * @brief Used during InitGameplayScreen to randomize worldwide assets.
+ */
 static int worldSeed = 12345;
-static int mode = MODE_WORLD;
 
+static int mode = MODE_WORLD;
 
 // Gameplay Screen Initialization logic
 void InitGameplayScreen(void)
 {
-    // TODO: Initialize GAMEPLAY screen variables here!
-    framesCounter = 0;
-    finishScreen = 0;
+	// TODO: Initialize GAMEPLAY screen variables here!
+	framesCounter = 0;
+	finishScreen = 0;
 
-    FontStyle *small = (FontStyle *)(MemAlloc(sizeof(FontStyle)));
-    small->color = MAROON;
-    small->font = GetFontDefault();
-    small->size = small->font.baseSize;
-    small->spacing = 4;
+	FontStyle *small = (FontStyle *)(MemAlloc(sizeof(FontStyle)));
+	small->color = MAROON;
+	small->font = GetFontDefault();
+	small->size = small->font.baseSize;
+	small->spacing = 4;
 
-    LoadFontStyle("gameplaysmall", small);
-    SetCurrentFontStyle("gameplaysmall");
+	LoadFontStyle("gameplaysmall", small);
+	SetCurrentFontStyle("gameplaysmall");
 
-    getWorld(worldSeed);
+	srand(worldSeed);
+	heightMap = LoadImage("resources/world-height.png");
+	worldImg = GenerateWorldImage(heightMap);
+	worldTexture = LoadTextureFromImage(worldImg);
 
-    GenerateWorldImages(worldSeed, &heightmap, &worldImg);
+	tileMapImage = GenerateTileMap();
+	tileMap = LoadTextureFromImage(tileMapImage);
 
-    worldTexture = LoadTextureFromImage(worldImg);
+	player.world.x = 128;
+	player.world.y = 128;
 
-    player.world.x = 128;
-    player.world.y = 128;
+	player.pos.x = 128;
+	player.pos.y = 128;
 
-    mode = MODE_WORLD;
+	mode = MODE_LOCAL;
 }
 
 // Gameplay Screen Update logic
 void UpdateGameplayScreen(void)
 {
-    // TODO: Update GAMEPLAY screen variables here!
+	// TODO: Update GAMEPLAY screen variables here!
 
-    // Press enter or tap to change to ENDING screen
-    // if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-    // {
-    //     finishScreen = 1;
-    //     PlaySound(fxCoin);
-    // }
+	// Press enter or tap to change to ENDING screen
+	// if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+	// {
+	//     finishScreen = 1;
+	//     PlaySound(fxCoin);
+	// }
+
+	if (IsKeyPressed(KEY_SPACE))
+	{
+		mode++;
+		if (mode > MODE_LOCAL)
+			mode = MODE_WORLD;
+	}
 }
 
 // Gameplay Screen Draw logic
 void DrawGameplayScreen(void)
 {
-    // TODO: Draw GAMEPLAY screen here!
-    ClearBackground(BLUE);
+	// TODO: Draw GAMEPLAY screen here!
+	ClearBackground(BLACK);
 
-    switch (mode)
-    {
-    case MODE_WORLD:
-        DrawTexture(worldTexture, 0, 0, WHITE);
-        DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
-        break;
-    }
+	switch (mode)
+	{
+	case MODE_WORLD:
+		DrawTexture(worldTexture, 0, 0, WHITE);
+		DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
+		break;
+	case MODE_LOCAL:
+		DrawTexture(tileMap, 0, 0, WHITE);
+		DrawRectangleLines(0, 0, tileMap.width, tileMap.height, RED);
+		break;
+	}
 
-    SetCurrentFontStyle("gameplaysmall");
-    DrawStyleTextAnchored(TextFormat("wrld: %i/%i", player.world.x, player.world.y), (FontAnchors){10, -1, -1, 10});
-    DrawStyleTextAnchored(TextFormat("locl: %i/%i", player.local.x, player.local.y), (FontAnchors){-1, -1, 10, 10});
+	SetCurrentFontStyle("gameplaysmall");
+	DrawStyleTextAnchored(TextFormat("wrld: %i/%i", player.world.x, player.world.y), (FontAnchors){10, -1, -1, 10});
+	DrawStyleTextAnchored(TextFormat("pos:  %f/%f", player.pos.x, player.pos.y), (FontAnchors){-1, -1, 10, 10});
 }
 
 // Gameplay Screen Unload logic
 void UnloadGameplayScreen(void)
 {
-    // TODO: Unload GAMEPLAY screen variables here!
-    UnloadFontStyle("gameplaysmall");
-    UnloadTexture(worldTexture);
+	// TODO: Unload GAMEPLAY screen variables here!
+	UnloadFontStyle("gameplaysmall");
+
+	UnloadImage(worldImg);
+	UnloadImage(heightMap);
+	UnloadImage(tileMapImage);
+
+	UnloadTexture(worldTexture);
+	UnloadTexture(tileMap);
 }
 
 // Gameplay Screen should finish?
 int FinishGameplayScreen(void)
 {
-    return finishScreen;
+	return finishScreen;
 }

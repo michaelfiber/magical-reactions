@@ -8,9 +8,9 @@ extern void Say(char *text);
 extern void RegisterOrientationPointers(float *beta, float *gamma);
 extern void Vibrate(int *durations, int durationCount);
 #else
-void Say(char *text) {}
-void RegisterOrientationPointers(float *beta, float *gamma) {}
-void Vibrate(int *durations, int durationCount) {}
+void Say(char *text);
+void RegisterOrientationPointers(float *beta, float *gamma);
+void Vibrate(int *durations, int durationCount);
 #endif
 
 #endif

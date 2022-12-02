@@ -374,6 +374,7 @@ endif
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
+	my-library.c \
 	fontstyle.c \
 	worldgen.c \
 	raylib_game.c \

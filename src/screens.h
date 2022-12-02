@@ -35,9 +35,9 @@ typedef enum GameScreen { UNKNOWN = -1, LOGO = 0, TITLE, OPTIONS, GAMEPLAY, ENDI
 // Global Variables Declaration (shared by several modules)
 //----------------------------------------------------------------------------------
 extern GameScreen currentScreen;
-extern Font font;
-extern Music music;
-extern Sound fxCoin;
+// extern Font font;
+// extern Music music;
+// extern Sound fxCoin;
 extern float beta;
 extern float gamma;
 
