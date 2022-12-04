@@ -1,6 +1,8 @@
 #include "stdlib.h"
 #include "math.h"
 #include "worldgen.h"
+#include "village.h"
+#include "player.h"
 
 typedef struct
 {
@@ -8,6 +10,8 @@ typedef struct
 	int y;
 	int height;
 } MountainLocation;
+
+int heights[256 * 256] = {0};
 
 /*
 	world:
@@ -47,8 +51,6 @@ Color GetBiomeColor(int biome)
 
 	return color;
 }
-
-int heights[256 * 256] = {0};
 
 Image GenerateWorldImage(Image heightMap)
 {
@@ -106,11 +108,11 @@ int GetBiome(int elevation)
  * @brief Get the Local Map object - 256x256 grid of 32x32 tiles that represent the gameplay map.
  *
  * @param worldLoc
- * @param pos
  * @param elevation
  */
-void FillLocalMap(Location worldLoc, Vector2 pos, LocalWorldNode *localMap)
+void FillLocalMap(LocalWorldNode *localMap)
 {
+	Location worldLoc = player.world;
 	int elevation = heights[worldLoc.y * 256 + worldLoc.x];
 
 	srand(worldLoc.y * 256 + worldLoc.x);
@@ -121,7 +123,12 @@ void FillLocalMap(Location worldLoc, Vector2 pos, LocalWorldNode *localMap)
 	{
 		localMap[i].passable = (biome != BIOME_WATER);
 		localMap[i].tile = rand() % 8;
+		localMap[i].item = rand() % 100;
+		if (localMap[i].item > 7)
+			localMap[i].item = 0;
 	}
+
+	InitVillage();
 }
 
 int GetElevationAtWorldLoc(Location worldLoc)
@@ -137,7 +144,7 @@ int GetBiomeAtWorldLocation(Location worldLoc)
 Image GenerateTileMap()
 {
 	int width = 32;
-	int height = 32 * 6 * 8;
+	int height = 32 * BIOME_COUNT * 8;
 
 	Color *pixels = (Color *)MemAlloc(sizeof(Color) * width * height);
 
@@ -168,4 +175,10 @@ Image GenerateTileMap()
 		.mipmaps = 1};
 
 	return img;
+}
+
+Texture2D GenerateItemMap()
+{
+	Texture2D items = LoadTexture("resources/item-atlas.png");
+	return items;
 }

@@ -29,13 +29,15 @@ typedef struct
 {
 	int tile;
 	bool passable;
+	int item;
 } LocalWorldNode;
 
 int GetBiome(int elevation);
 Color GetBiomeColor(int biome);
 Image GenerateTileMap();
+Texture2D GenerateItemMap();
 Image GenerateWorldImage(Image heightMap);
-void FillLocalMap(Location worldLoc, Vector2 pos, LocalWorldNode *localMap);
+void FillLocalMap(LocalWorldNode *localMap);
 int GetElevationAtWorldLoc(Location worldLoc);
 int GetBiomeAtWorldLocation(Location worldLoc);
 

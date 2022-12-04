@@ -374,6 +374,8 @@ endif
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
+	village.c \
+	sprite.c \
 	my-library.c \
 	fontstyle.c \
 	worldgen.c \
