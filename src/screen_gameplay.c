@@ -31,6 +31,7 @@
 #include "worldgen.h"
 #include "village.h"
 #include "player.h"
+#include "myrandom.h"
 
 #define MODE_WORLD 0
 #define MODE_LOCAL 1
@@ -55,6 +56,7 @@ Image tileMapImage = {0};
 Texture2D worldTexture = {0};
 Texture2D tileMap = {0};
 Texture2D itemMap = {0};
+Texture2D villageMarkers = {0};
 
 LocalWorldNode localNodes[256 * 256] = {0};
 
@@ -73,8 +75,39 @@ static bool drawBottomNeighbor = false;
 static bool drawLeftNeighbor = false;
 
 Texture2D biomeTexture = {0};
-
 Texture2D grassTexture = {0};
+
+/**
+ * @brief RUNS SRAND
+ *
+ * @return Image
+ */
+Image GenerateVillageMarkers()
+{
+	Color *data = (Color *)MemAlloc(sizeof(Color) * 256 * 256);
+
+	Color transparent = ColorAlpha(WHITE, 0.0f);
+
+	// After this commands may rerun srand.
+	Location l = {0, 0};
+
+	for (int x = 0; x < 256; x++)
+	{
+		for (int y = 0; y < 256; y++)
+		{
+			l.x = x;
+			l.y = y;
+			data[y * 256 + x] = HasVillageDestructive(l) ? BLACK : transparent;
+		}
+	}
+
+	return (Image){
+		.data = data,
+		.width = 256,
+		.height = 256,
+		.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+		.mipmaps = 1};
+}
 
 // Gameplay Screen Initialization logic
 void InitGameplayScreen(void)
@@ -95,7 +128,7 @@ void InitGameplayScreen(void)
 	LoadFontStyle("gameplaysmall", small);
 	SetCurrentFontStyle("gameplaysmall");
 
-	srand(worldSeed);
+	SeedRandom(worldSeed);
 	heightMap = LoadImage("resources/world-height.png");
 	worldImg = GenerateWorldImage(heightMap);
 	worldTexture = LoadTextureFromImage(worldImg);
@@ -105,24 +138,27 @@ void InitGameplayScreen(void)
 
 	itemMap = GenerateItemMap();
 
-	player.world.x = 128;
+	player.world.x = 165;
 	player.world.y = 128;
 
-	player.pos.x = 3104;
-	player.pos.y = 5408;
+	player.pos.x = 128;
+	player.pos.y = 3298;
 
-	player.speed = 200.0f;
+	player.speed = 100.0f;
 
 	mode = MODE_LOCAL;
-
-	int *data = heightMap.data;
-
-	// this also sets up the village.
-	FillLocalMap(&localNodes);
 
 	camera.zoom = 1.0f;
 	camera.offset.x = 128;
 	camera.offset.y = 128;
+
+	// This will run SeedRandom tons of times.
+	Image img = GenerateVillageMarkers();
+	villageMarkers = LoadTextureFromImage(img);
+	UnloadImage(img);
+
+	// this also sets up the village and calls SeedRandom
+	FillLocalMap(&localNodes);
 }
 
 void UpdateWorldLoc()
@@ -231,8 +267,93 @@ void UpdateGameInput()
 			vel.y = 0.7 * vel.y;
 		}
 
-		player.pos.x += vel.x * GetFrameTime() * player.speed;
-		player.pos.y += vel.y * GetFrameTime() * player.speed;
+		int localX = player.pos.x / 32;
+		int localY = player.pos.y / 32;
+
+		float xInc = vel.x * GetFrameTime() * player.speed;
+		float yInc = vel.y * GetFrameTime() * player.speed;
+
+		if (vel.x > 0)
+		{
+
+			Rectangle rec = {player.pos.x + xInc, player.pos.y, 32, 32};
+
+			// check the top right
+			if (!localNodes[localY * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, localY * 32, 32, 32}))
+			{
+				xInc = 0;
+				player.pos.x = localX * 32;
+			}
+
+			rec.x = player.pos.x + xInc;
+
+			// check the bottom right
+			if (!localNodes[(localY + 1) * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
+			{
+				xInc = 0;
+				player.pos.x = localX * 32;
+			}
+		}
+		else if (vel.x < 0)
+		{
+			Rectangle rec = {player.pos.x + xInc, player.pos.y + yInc, 32, 32};
+
+			// check the top left
+			if (!localNodes[localY * 256 + (localX - 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, localY * 32, 32, 32}))
+			{
+				xInc = 0;
+				player.pos.x = localX * 32;
+			}
+
+			rec.x = player.pos.x + xInc;
+
+			// check the bottom left
+			if (!localNodes[(localY + 1) * 256 + (localX - 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, (localY + 1) * 32, 32, 32}))
+			{
+				xInc = 0;
+				player.pos.x = localX * 32;
+			}
+		}
+
+		if (vel.y > 0)
+		{
+			Rectangle rec = {player.pos.x, player.pos.y + yInc, 32, 32};
+			// check bottom left
+			if (!localNodes[(localY + 1) * 256 + localX].passable && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY + 1) * 32, 32, 32}))
+			{
+				yInc = 0;
+				player.pos.y = localY * 32;
+			}
+
+			rec.y = player.pos.y + yInc;
+			// check bottom right
+			if (!localNodes[(localY + 1) * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
+			{
+				yInc = 0;
+				player.pos.y = localY * 32;
+			}
+		}
+		else if (vel.y < 0)
+		{
+			Rectangle rec = {player.pos.x, player.pos.y + yInc, 32, 32};
+			// check top left
+			if (!localNodes[(localY - 1) * 256 + localX].passable && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY - 1) * 32, 32, 32}))
+			{
+				yInc = 0;
+				player.pos.y = localY * 32;
+			}
+
+			rec.y = player.pos.y + yInc;
+			// check top right
+			if (!localNodes[(localY - 1) * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY - 1) * 32, 32, 32}))
+			{
+				yInc = 0;
+				player.pos.y = localY * 32;
+			}
+		}
+
+		player.pos.x += xInc;
+		player.pos.y += yInc;
 	}
 	else if (mode == MODE_WORLD)
 	{
@@ -315,8 +436,8 @@ void UpdateGameplayScreen(void)
 void DrawWorld()
 {
 	DrawTexture(worldTexture, 0, 0, WHITE);
+	DrawTexture(villageMarkers, 0, 0, WHITE);
 	DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
-	DrawTextureRec(itemMap, (Rectangle){0, 0, 32, itemMap.height}, (Vector2){0, 0}, WHITE);
 }
 
 void DrawLocal()
@@ -356,16 +477,13 @@ void DrawLocal()
 		for (int x = (camera.target.x - 128) / 32; x < 256 && x < (camera.target.x - 128) / 32 + 8; x++)
 		{
 			DrawTexturePro(tileMap, (Rectangle){0, ((biome * 8) + localNodes[y * 256 + x].tile) * 32, 32, 32}, (Rectangle){x * 32, y * 32, 32, 32}, (Vector2){0, 0}, 0.0f, WHITE);
-			if (localNodes[y * 256 + x].item > 0)
+			int item = localNodes[y * 256 + x].item;
+			if (item > -1)
 			{
-				DrawTexturePro(biomeTexture, (Rectangle){0, localNodes[y + 256 + x].item * 32, 32, 32}, (Rectangle){x * 32, y * 32, 32, 32}, (Vector2){0, 0}, 0.0f, WHITE);
+				DrawTexturePro(biomeTexture, (Rectangle){0, item * 32, 32, 32}, (Rectangle){x * 32, y * 32, 32, 32}, (Vector2){0, 0}, 0.0f, WHITE);
+				DrawText(TextFormat("%i", item), x * 32, y * 32, GetFontDefault().baseSize, BLACK);
 			}
 			drawCount++;
-
-			if (CheckCollisionPointRec((Vector2){player.pos.x + 16, player.pos.y + 16}, (Rectangle){x * 32, y * 32, 32, 32}))
-			{
-				DrawRectangleLines(x * 32, y * 32, 32, 32, WHITE);
-			}
 		}
 	}
 	DrawVillage();
@@ -410,8 +528,8 @@ void UnloadGameplayScreen(void)
 
 	UnloadTexture(worldTexture);
 	UnloadTexture(tileMap);
-
 	UnloadTexture(itemMap);
+	UnloadTexture(villageMarkers);
 
 	UnloadVillage();
 }

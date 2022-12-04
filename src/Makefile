@@ -375,6 +375,7 @@ endif
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
 	village.c \
+	myrandom.c \
 	sprite.c \
 	my-library.c \
 	fontstyle.c \

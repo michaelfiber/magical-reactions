@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "player.h"
 #include "sprite.h"
+#include "myrandom.h"
 
 Texture2D campfireTexture;
 
@@ -16,9 +17,9 @@ bool hasVillage = false;
  */
 bool HasVillageDestructive(Location location)
 {
-	srand(location.y * 256 + location.x);
+	SeedRandom(location.y * 256 + location.x);
 
-	hasVillage = GetBiomeAtWorldLocation(player.world) == BIOME_GRASS && rand() % 100 < 2;
+	hasVillage = GetBiomeAtWorldLocation(location) == BIOME_GRASS && Random(0, 100) < 2;
 
 	return hasVillage;
 }
@@ -34,7 +35,7 @@ void InitVillage()
 	campfireTexture = LoadTexture("resources/campfire_32x32.png");
 
 	TraceLog(LOG_INFO, TextFormat("campfire texture width %i", campfireTexture.width));
-	int campfire = AddSprite(campfireTexture, (Vector2){(rand() % 256) * 32, (rand() % 256) * 32}, 0.3f);
+	int campfire = AddSprite(campfireTexture, (Vector2){Random(0, 255) * 32, Random(0, 255) * 32}, 0.3f);
 
 	TraceLog(LOG_INFO, TextFormat("Loaded campfire as sprite #%i", campfire));
 	TraceLog(LOG_INFO, TextFormat("Campfire is at %f %f", sprites[campfire].location.x, sprites[campfire].location.y));

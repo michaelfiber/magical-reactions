@@ -3,6 +3,7 @@
 #include "worldgen.h"
 #include "village.h"
 #include "player.h"
+#include "myrandom.h"
 
 typedef struct
 {
@@ -115,17 +116,20 @@ void FillLocalMap(LocalWorldNode *localMap)
 	Location worldLoc = player.world;
 	int elevation = heights[worldLoc.y * 256 + worldLoc.x];
 
-	srand(worldLoc.y * 256 + worldLoc.x);
+	SeedRandom(worldLoc.y * 256 + worldLoc.x);
 	TraceLog(LOG_INFO, TextFormat("Elevation %i", elevation));
 
 	int biome = GetBiome(elevation);
 	for (int i = 0; i < 256 * 256; i++)
 	{
 		localMap[i].passable = (biome != BIOME_WATER);
-		localMap[i].tile = rand() % 8;
-		localMap[i].item = rand() % 100;
+		localMap[i].tile = Random(0, 7);
+		localMap[i].item = Random(0, 100);
 		if (localMap[i].item > 7)
-			localMap[i].item = 0;
+			localMap[i].item = -1;
+
+		if (localMap[i].item > -1 && localMap[i].item < 4)
+			localMap[i].passable = false;
 	}
 
 	InitVillage();
@@ -156,11 +160,11 @@ Image GenerateTileMap()
 		for (int currentTile = 0; currentTile < 8; currentTile++)
 		{
 			hsv = ColorToHSV(GetBiomeColor(biome));
-			hsv.x += (rand() % 20) - 10;
+			hsv.x += Random(-10, 10);
 
 			for (int i = 0; i < 32 * 32; i++)
 			{
-				float z = hsv.z * ((rand() % 20) + 80) / 100.0;
+				float z = hsv.z * Random(80, 100) / 100.0;
 				pixels[currentPixel] = ColorFromHSV(hsv.x, hsv.y, z);
 				currentPixel++;
 			}
