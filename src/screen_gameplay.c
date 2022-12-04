@@ -481,7 +481,6 @@ void DrawLocal()
 			if (item > -1)
 			{
 				DrawTexturePro(biomeTexture, (Rectangle){0, item * 32, 32, 32}, (Rectangle){x * 32, y * 32, 32, 32}, (Vector2){0, 0}, 0.0f, WHITE);
-				DrawText(TextFormat("%i", item), x * 32, y * 32, GetFontDefault().baseSize, BLACK);
 			}
 			drawCount++;
 		}
