@@ -59,6 +59,7 @@ Texture2D itemMap = {0};
 Texture2D villageMarkers = {0};
 
 LocalWorldNode localNodes[256 * 256] = {0};
+bool villagePassable[256 * 256] = {0};
 
 /**
  * @brief Used during InitGameplayScreen to randomize worldwide assets.
@@ -138,11 +139,11 @@ void InitGameplayScreen(void)
 
 	itemMap = GenerateItemMap();
 
-	player.world.x = 165;
+	player.world.x = 167;
 	player.world.y = 128;
 
-	player.pos.x = 128;
-	player.pos.y = 3298;
+	player.pos.x = 2240;
+	player.pos.y = 3266;
 
 	player.speed = 100.0f;
 
@@ -227,6 +228,18 @@ void UpdateWorldLoc()
 	}
 }
 
+/**
+ * @brief Check if a location on the local map is passable by checking localNodes and village items?
+ *
+ * @param index
+ * @return true
+ * @return false
+ */
+bool IsPassable(int index)
+{
+	return localNodes[index].passable && VillagePassableGrid[index];
+}
+
 void UpdateGameInput()
 {
 
@@ -279,7 +292,7 @@ void UpdateGameInput()
 			Rectangle rec = {player.pos.x + xInc, player.pos.y, 32, 32};
 
 			// check the top right
-			if (!localNodes[localY * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, localY * 32, 32, 32}))
+			if (!IsPassable(localY * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, localY * 32, 32, 32}))
 			{
 				xInc = 0;
 				player.pos.x = localX * 32;
@@ -288,7 +301,7 @@ void UpdateGameInput()
 			rec.x = player.pos.x + xInc;
 
 			// check the bottom right
-			if (!localNodes[(localY + 1) * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
+			if (!IsPassable((localY + 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
 			{
 				xInc = 0;
 				player.pos.x = localX * 32;
@@ -299,7 +312,7 @@ void UpdateGameInput()
 			Rectangle rec = {player.pos.x + xInc, player.pos.y + yInc, 32, 32};
 
 			// check the top left
-			if (!localNodes[localY * 256 + (localX - 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, localY * 32, 32, 32}))
+			if (!IsPassable(localY * 256 + (localX - 1)) && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, localY * 32, 32, 32}))
 			{
 				xInc = 0;
 				player.pos.x = localX * 32;
@@ -308,7 +321,7 @@ void UpdateGameInput()
 			rec.x = player.pos.x + xInc;
 
 			// check the bottom left
-			if (!localNodes[(localY + 1) * 256 + (localX - 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, (localY + 1) * 32, 32, 32}))
+			if (!IsPassable((localY + 1) * 256 + (localX - 1)) && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, (localY + 1) * 32, 32, 32}))
 			{
 				xInc = 0;
 				player.pos.x = localX * 32;
@@ -319,7 +332,7 @@ void UpdateGameInput()
 		{
 			Rectangle rec = {player.pos.x, player.pos.y + yInc, 32, 32};
 			// check bottom left
-			if (!localNodes[(localY + 1) * 256 + localX].passable && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY + 1) * 32, 32, 32}))
+			if (!IsPassable((localY + 1) * 256 + localX) && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY + 1) * 32, 32, 32}))
 			{
 				yInc = 0;
 				player.pos.y = localY * 32;
@@ -327,7 +340,7 @@ void UpdateGameInput()
 
 			rec.y = player.pos.y + yInc;
 			// check bottom right
-			if (!localNodes[(localY + 1) * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
+			if (!IsPassable((localY + 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
 			{
 				yInc = 0;
 				player.pos.y = localY * 32;
@@ -337,7 +350,7 @@ void UpdateGameInput()
 		{
 			Rectangle rec = {player.pos.x, player.pos.y + yInc, 32, 32};
 			// check top left
-			if (!localNodes[(localY - 1) * 256 + localX].passable && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY - 1) * 32, 32, 32}))
+			if (!IsPassable((localY - 1) * 256 + localX) && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY - 1) * 32, 32, 32}))
 			{
 				yInc = 0;
 				player.pos.y = localY * 32;
@@ -345,7 +358,7 @@ void UpdateGameInput()
 
 			rec.y = player.pos.y + yInc;
 			// check top right
-			if (!localNodes[(localY - 1) * 256 + (localX + 1)].passable && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY - 1) * 32, 32, 32}))
+			if (!IsPassable((localY - 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY - 1) * 32, 32, 32}))
 			{
 				yInc = 0;
 				player.pos.y = localY * 32;
@@ -490,7 +503,7 @@ void DrawLocal()
 	DrawRectangleLines(player.pos.x, player.pos.y, 32, 32, PURPLE);
 	EndMode2D();
 
-	DrawStyleTextAnchored(TextFormat("biome %i draw count %i", biome, drawCount), (FontAnchors){-1, -1, -1, 10});
+	DrawStyleTextAnchored(TextFormat("Dispo %i", VillageDisposition), (FontAnchors){-1, -1, -1, -1});
 }
 
 // Gameplay Screen Draw logic
