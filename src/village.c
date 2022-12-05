@@ -53,11 +53,39 @@ HouseType houseTypes[] = {
 	 .gridWidth = 5,
 	 .gridHeight = 3}};
 
+/**
+ * @brief There is a village somewhere at this world location.
+ *
+ */
+bool hasVillage = false;
+
+/**
+ * @brief Number of distinct types of houses that can spawn.
+ *
+ */
 int houseTypeCount = 12;
 
+/**
+ * @brief Number of houses in the village that is currently spawned.
+ *
+ */
 int houseCount = 4;
 
-bool hasVillage = false;
+/**
+ * @brief The disposition of the village:
+ * 0 - there is 1 resident and they are alone
+ * 1 - likes everyone
+ * 2 - likes themselves but neutral to you
+ * 3 - neutral to all
+ * 4 - likes themselves but hates you
+ * 5 - hates everyone
+ */
+int VillageDisposition = 0;
+
+/**
+ * @brief If true there is a hermit house somewhere in the area.
+ */
+bool hasHermit = false;
 
 typedef struct
 {
@@ -69,7 +97,6 @@ typedef struct
 bool VillagePassableGrid[256 * 256] = {0};
 House houses[32] = {0};
 Location center = {0};
-int VillageDisposition = 0;
 
 /**
  * @brief RUNS SRAND - Checks if a location has a village. There is a 1/100 chance that a grass biome will have a village.
@@ -100,10 +127,12 @@ void GenerateHouses()
 	if (houseCount == 1)
 	{
 		VillageDisposition = DISPO_ALONE;
+		hasHermit = false;
 	}
 	else
 	{
 		VillageDisposition = Random(1, DISPO_COUNT - 1);
+		hasHermit = Random(0, 100) < 2;
 	}
 
 	int x = center.x - ((houseCount > 7 ? houseCount / 2 : houseCount) * 4) / 2;
@@ -116,6 +145,14 @@ void GenerateHouses()
 		houses[i].location.x = x;
 		houses[i].location.y = y;
 		x += houseTypes[houses[i].houseType].gridWidth + 2;
+
+		if (i == houseCount-1 && hasHermit) {
+			houses[i].location.x = Random(0, 100);
+			if (houses[i].location.x > 50) houses[i].location.x += 199;
+
+			houses[i].location.y = Random(0, 100);
+			if (houses[i].location.y > 50) houses[i].location.y += 199;
+		}
 
 		if (i > 0 && i % 6 == 0)
 		{
@@ -158,7 +195,8 @@ void InitVillage()
 		houseTypes[i].src.y += 256;
 	}
 	// Alsp update 8-11 to be srced 512
-	for (int i = 8; i < 12; i++) {
+	for (int i = 8; i < 12; i++)
+	{
 		houseTypes[i].src.y += 512;
 	}
 
@@ -205,6 +243,7 @@ void DrawVillage()
 		{
 			Rectangle src = houseTypes[houses[i].houseType].src;
 			DrawTexturePro(villageTexture, src, (Rectangle){houses[i].location.x * 32, houses[i].location.y * 32 + houseTypes[houses[i].houseType].gridHeight * 32 - src.height, src.width, src.height}, (Vector2){0, 0}, 0.0f, WHITE);
+			DrawText(TextFormat("bldng %i", houses[i].houseType), houses[i].location.x * 32, houses[i].location.y * 32, GetFontDefault().baseSize, WHITE);
 		}
 	}
 }
