@@ -5,6 +5,9 @@
 #include "player.h"
 #include "myrandom.h"
 
+#define FNL_IMPL 1
+#include "FastNoiseLite.h"
+
 typedef struct
 {
 	int x;
@@ -53,6 +56,36 @@ Color GetBiomeColor(int biome)
 	return color;
 }
 
+Image GenerateHeightMap(int worldSeed)
+{
+	unsigned char *data = (unsigned char *)MemAlloc(sizeof(unsigned char) * 256 * 256);
+	fnl_state noise = fnlCreateState();
+	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+	noise.seed = worldSeed;
+
+	int index = 0;
+
+	for (int y = 0; y < 256; y++)
+	{
+		for (int x = 0; x < 256; x++)
+		{
+			int dx = abs(x - 128);
+			int dy = abs(y - 128);
+			float distance = sqrt((dx * dx) + (dy * dy));
+			data[index++] = (fnlGetNoise2D(&noise, x, y) + 1) * 128 * pow((185 - distance) / 185, 1.5);
+		}
+	}
+
+	Image heightmap = {
+		.data = data,
+		.format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE,
+		.width = 256,
+		.height = 256,
+		.mipmaps = 1};
+
+	return heightmap;
+}
+
 Image GenerateWorldImage(Image heightMap)
 {
 	Color *colorData = (Color *)MemAlloc(sizeof(Color) * 256 * 256);
@@ -78,11 +111,11 @@ Image GenerateWorldImage(Image heightMap)
 int GetBiome(int elevation)
 {
 	int biome = BIOME_WATER;
-	if (elevation < 5)
+	if (elevation < 40)
 	{
 		biome = BIOME_WATER;
 	}
-	else if (elevation < 40)
+	else if (elevation < 80)
 	{
 		biome = BIOME_SAND;
 	}
@@ -90,11 +123,11 @@ int GetBiome(int elevation)
 	{
 		biome = BIOME_GRASS;
 	}
-	else if (elevation < 200)
+	else if (elevation < 225)
 	{
 		biome = BIOME_ROCKY;
 	}
-	else if (elevation < 218)
+	else if (elevation < 250)
 	{
 		biome = BIOME_SNOW;
 	}

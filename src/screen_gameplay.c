@@ -65,7 +65,7 @@ bool villagePassable[256 * 256] = {0};
 /**
  * @brief Used during InitGameplayScreen to randomize worldwide assets.
  */
-static int worldSeed = 12345;
+static int worldSeed = 123456;
 
 static int mode = MODE_WORLD;
 
@@ -142,7 +142,11 @@ void InitGameplayScreen(void)
 	SetCurrentFontStyle("gameplaysmall");
 
 	SeedRandom(worldSeed);
-	heightMap = LoadImage("resources/world-height.png");
+	
+	//heightMap = LoadImage("resources/world-height.png");
+
+	heightMap = GenerateHeightMap(worldSeed);
+
 	worldImg = GenerateWorldImage(heightMap);
 	worldTexture = LoadTextureFromImage(worldImg);
 

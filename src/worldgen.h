@@ -32,6 +32,7 @@ typedef struct
 	int item;
 } LocalWorldNode;
 
+Image GenerateHeightMap(int worldSeed);
 int GetBiome(int elevation);
 Color GetBiomeColor(int biome);
 Image GenerateTileMap();
