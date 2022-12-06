@@ -19,7 +19,7 @@ typedef struct {
 	int houseType;
 	Location loc;
 	int gridWidth;
-	int gridHeight
+	int gridHeight;
 } VillageNode;
 
 bool HasVillageDestructive(Location location);

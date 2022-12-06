@@ -65,7 +65,7 @@ bool villagePassable[256 * 256] = {0};
 /**
  * @brief Used during InitGameplayScreen to randomize worldwide assets.
  */
-static int worldSeed = 123456;
+static int worldSeed = 12345;
 
 static int mode = MODE_WORLD;
 
@@ -322,13 +322,13 @@ void UpdateGameInput()
 		if (vel.x > 0)
 		{
 
-			Rectangle rec = {player.pos.x + xInc, player.pos.y, 32, 32};
+			Rectangle rec = {player.pos.x + xInc, player.pos.y, 16, 32};
 
 			// check the top right
 			if (!IsPassable(localY * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, localY * 32, 32, 32}))
 			{
 				xInc = 0;
-				player.pos.x = localX * 32;
+				player.pos.x = localX * 32 + 16;
 			}
 
 			rec.x = player.pos.x + xInc;
@@ -337,12 +337,12 @@ void UpdateGameInput()
 			if (!IsPassable((localY + 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
 			{
 				xInc = 0;
-				player.pos.x = localX * 32;
+				player.pos.x = localX * 32 + 16;
 			}
 		}
 		else if (vel.x < 0)
 		{
-			Rectangle rec = {player.pos.x + xInc, player.pos.y + yInc, 32, 32};
+			Rectangle rec = {player.pos.x + xInc, player.pos.y + yInc, 16, 32};
 
 			// check the top left
 			if (!IsPassable(localY * 256 + (localX - 1)) && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, localY * 32, 32, 32}))
@@ -363,7 +363,7 @@ void UpdateGameInput()
 
 		if (vel.y > 0)
 		{
-			Rectangle rec = {player.pos.x, player.pos.y + yInc, 32, 32};
+			Rectangle rec = {player.pos.x, player.pos.y + yInc, 16, 32};
 			// check bottom left
 			if (!IsPassable((localY + 1) * 256 + localX) && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY + 1) * 32, 32, 32}))
 			{
@@ -381,7 +381,7 @@ void UpdateGameInput()
 		}
 		else if (vel.y < 0)
 		{
-			Rectangle rec = {player.pos.x, player.pos.y + yInc, 32, 32};
+			Rectangle rec = {player.pos.x, player.pos.y + yInc, 16, 32};
 			// check top left
 			if (!IsPassable((localY - 1) * 256 + localX) && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY - 1) * 32, 32, 32}))
 			{

@@ -64,6 +64,7 @@ Image GenerateHeightMap(int worldSeed)
 	noise.seed = worldSeed;
 
 	int index = 0;
+	int max = 0;
 
 	for (int y = 0; y < 256; y++)
 	{
@@ -72,8 +73,17 @@ Image GenerateHeightMap(int worldSeed)
 			int dx = abs(x - 128);
 			int dy = abs(y - 128);
 			float distance = sqrt((dx * dx) + (dy * dy));
-			data[index++] = (fnlGetNoise2D(&noise, x, y) + 1) * 128 * pow((185 - distance) / 185, 1.5);
+			data[index++] = (fnlGetNoise2D(&noise, x, y) + 1) * 128 * pow((185 - distance) / 185, 1.1);
+			if (data[index - 1] > max)
+				max = data[index - 1];
 		}
+	}
+
+	TraceLog(LOG_INFO, TextFormat("max: %i", max));
+
+	float rate = (max * 1.0f) / 255;
+	for (int i = 0; i < 256 * 256; i++) {
+		data[i] = data[i] / rate;
 	}
 
 	Image heightmap = {
@@ -111,15 +121,15 @@ Image GenerateWorldImage(Image heightMap)
 int GetBiome(int elevation)
 {
 	int biome = BIOME_WATER;
-	if (elevation < 40)
+	if (elevation < 75)
 	{
 		biome = BIOME_WATER;
 	}
-	else if (elevation < 80)
+	else if (elevation < 90)
 	{
 		biome = BIOME_SAND;
 	}
-	else if (elevation < 150)
+	else if (elevation < 170)
 	{
 		biome = BIOME_GRASS;
 	}
