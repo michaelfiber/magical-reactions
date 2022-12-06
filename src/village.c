@@ -4,6 +4,7 @@
 #include "sprite.h"
 #include "myrandom.h"
 #include "village.h"
+#include "human.h"
 
 Texture2D campfireTexture;
 Texture2D villageTexture;
@@ -91,7 +92,8 @@ typedef struct
 {
 	bool isActive;
 	Location location;
-	int houseType
+	int houseType;
+	Texture2D humanTexture;
 } House;
 
 bool VillagePassableGrid[256 * 256] = {0};
@@ -144,14 +146,22 @@ void GenerateHouses()
 		houses[i].isActive = true;
 		houses[i].location.x = x;
 		houses[i].location.y = y;
+
+		Image humanImage = GetHumanImage();
+		houses[i].humanTexture = LoadTextureFromImage(humanImage);
+		UnloadImage(humanImage);
+
 		x += houseTypes[houses[i].houseType].gridWidth + 2;
 
-		if (i == houseCount-1 && hasHermit) {
+		if (i == houseCount - 1 && hasHermit)
+		{
 			houses[i].location.x = Random(0, 100);
-			if (houses[i].location.x > 50) houses[i].location.x += 199;
+			if (houses[i].location.x > 50)
+				houses[i].location.x += 199;
 
 			houses[i].location.y = Random(0, 100);
-			if (houses[i].location.y > 50) houses[i].location.y += 199;
+			if (houses[i].location.y > 50)
+				houses[i].location.y += 199;
 		}
 
 		if (i > 0 && i % 6 == 0)
@@ -231,25 +241,36 @@ void UpdateVillage()
 	UpdateSprites();
 }
 
-void DrawVillage()
+void DrawHouses()
 {
-	DrawSprites();
-	if (hasVillage)
-		DrawText("There's a village nearby", player.pos.x, player.pos.y, GetFontDefault().baseSize, BLACK);
-
 	for (int i = 0; i < 32; i++)
 	{
 		if (houses[i].isActive)
 		{
 			Rectangle src = houseTypes[houses[i].houseType].src;
 			DrawTexturePro(villageTexture, src, (Rectangle){houses[i].location.x * 32, houses[i].location.y * 32 + houseTypes[houses[i].houseType].gridHeight * 32 - src.height, src.width, src.height}, (Vector2){0, 0}, 0.0f, WHITE);
-			DrawText(TextFormat("bldng %i", houses[i].houseType), houses[i].location.x * 32, houses[i].location.y * 32, GetFontDefault().baseSize, WHITE);
+			int x = houses[i].location.x * 32;
+			int y = (houses[i].location.y + houseTypes[houses[i].houseType].gridHeight) * 32 - 16;
+			DrawTexture(houses[i].humanTexture, x, y, WHITE);
 		}
 	}
+}
+
+void DrawVillage()
+{
+	DrawSprites();
+	// if (hasVillage)
+	// 	DrawText("There's a village nearby", player.pos.x, player.pos.y, GetFontDefault().baseSize, BLACK);
+	DrawHouses();
 }
 
 void UnloadVillage()
 {
 	UnloadTexture(campfireTexture);
 	UnloadTexture(villageTexture);
+	for (int i = 0; i < 32; i++)
+	{
+		if (houses[i].isActive)
+			UnloadTexture(houses[i].humanTexture);
+	}
 }

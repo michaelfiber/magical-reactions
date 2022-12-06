@@ -374,6 +374,7 @@ endif
 # Define source code object files required
 #------------------------------------------------------------------------------------------------
 PROJECT_SOURCE_FILES ?= \
+	human.c \
 	village.c \
 	myrandom.c \
 	sprite.c \

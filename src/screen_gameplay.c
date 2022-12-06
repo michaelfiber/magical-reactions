@@ -32,6 +32,7 @@
 #include "village.h"
 #include "player.h"
 #include "myrandom.h"
+#include "human.h"
 
 #define MODE_WORLD 0
 #define MODE_LOCAL 1
@@ -77,6 +78,17 @@ static bool drawLeftNeighbor = false;
 
 Texture2D biomeTexture = {0};
 Texture2D grassTexture = {0};
+Texture2D playerTexture = {0};
+
+/**
+ * @brief Sets the current world map zoom mode.
+ * - 0 = nothing
+ * - 1 = zooming out
+ * - 2 = zooming in
+ */
+int zoomMode = 0;
+float zoomFactor = 1.05f;
+int zoomScrollRate = 50;
 
 /**
  * @brief RUNS SRAND
@@ -152,6 +164,10 @@ void InitGameplayScreen(void)
 	camera.zoom = 1.0f;
 	camera.offset.x = 128;
 	camera.offset.y = 128;
+
+	Image playerImage = GetHumanImage();
+	playerTexture = LoadTextureFromImage(playerImage);
+	UnloadImage(playerImage);
 
 	// This will run SeedRandom tons of times.
 	Image img = GenerateVillageMarkers();
@@ -245,9 +261,22 @@ void UpdateGameInput()
 
 	if (IsKeyPressed(KEY_SPACE))
 	{
-		mode++;
-		if (mode > MODE_LOCAL)
+		if (mode == MODE_LOCAL)
+		{
+			// switch to world immediately and start zooming out.
+			zoomMode = 1;
 			mode = MODE_WORLD;
+			camera.zoom = 100.0f;
+			camera.target.x = player.world.x;
+			camera.target.y = player.world.y;
+		}
+		else
+		{
+			// start zooming in, switch to local mode once its zoomed in.
+			zoomMode = 2;
+			camera.target.x = 128;
+			camera.target.y = 128;
+		}
 	}
 
 	if (mode == MODE_LOCAL)
@@ -434,6 +463,51 @@ void UpdateLocalCamera()
 	}
 }
 
+void UpdateWorldCamera()
+{
+	if (zoomMode == 1)
+	{
+		if (camera.target.x < 128)
+			camera.target.x += GetFrameTime() * zoomScrollRate;
+		else if (camera.target.x > 128)
+			camera.target.x -= GetFrameTime() * zoomScrollRate;
+
+		if (camera.target.y < 128)
+			camera.target.y += GetFrameTime() * zoomScrollRate;
+		else if (camera.target.y > 128)
+			camera.target.y -= GetFrameTime() * zoomScrollRate;
+
+		camera.zoom = camera.zoom / zoomFactor;
+		if (camera.zoom < 1.0f)
+		{
+			camera.target.x = 128;
+			camera.target.y = 128;
+			camera.zoom = 1.0f;
+			zoomMode = 0;
+		}
+	}
+	else if (zoomMode == 2)
+	{
+		if (camera.target.x < player.world.x)
+			camera.target.x += GetFrameTime() * zoomScrollRate;
+		else if (camera.target.x > player.world.x)
+			camera.target.x -= GetFrameTime() * zoomScrollRate;
+
+		if (camera.target.y < player.world.y)
+			camera.target.y += GetFrameTime() * zoomScrollRate;
+		else if (camera.target.y > player.world.y)
+			camera.target.y -= GetFrameTime() * zoomScrollRate;
+
+		camera.zoom = camera.zoom * zoomFactor;
+		if (camera.zoom > 100.f)
+		{
+			camera.zoom = 1.0f;
+			zoomMode = 0;
+			mode = MODE_LOCAL;
+		}
+	}
+}
+
 // Gameplay Screen Update logic
 void UpdateGameplayScreen(void)
 {
@@ -443,14 +517,24 @@ void UpdateGameplayScreen(void)
 
 	UpdateGameInput();
 
-	UpdateLocalCamera();
+	if (mode == MODE_LOCAL)
+	{
+		UpdateLocalCamera();
+	}
+
+	if (mode == MODE_WORLD)
+	{
+		UpdateWorldCamera();
+	}
 }
 
 void DrawWorld()
 {
+	BeginMode2D(camera);
 	DrawTexture(worldTexture, 0, 0, WHITE);
 	DrawTexture(villageMarkers, 0, 0, WHITE);
 	DrawRectangleLines(player.world.x - 1, player.world.y - 1, 3, 3, RED);
+	EndMode2D();
 }
 
 void DrawLocal()
@@ -499,11 +583,8 @@ void DrawLocal()
 		}
 	}
 	DrawVillage();
-
-	DrawRectangleLines(player.pos.x, player.pos.y, 32, 32, PURPLE);
+	DrawTexture(playerTexture, player.pos.x, player.pos.y, WHITE);
 	EndMode2D();
-
-	DrawStyleTextAnchored(TextFormat("Dispo %i", VillageDisposition), (FontAnchors){-1, -1, -1, -1});
 }
 
 // Gameplay Screen Draw logic
@@ -542,6 +623,7 @@ void UnloadGameplayScreen(void)
 	UnloadTexture(tileMap);
 	UnloadTexture(itemMap);
 	UnloadTexture(villageMarkers);
+	UnloadTexture(playerTexture);
 
 	UnloadVillage();
 }
