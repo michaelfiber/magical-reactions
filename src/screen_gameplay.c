@@ -278,8 +278,8 @@ void UpdateGameInput()
 		{
 			// start zooming in, switch to local mode once its zoomed in.
 			zoomMode = 2;
-			camera.target.x = 128;
-			camera.target.y = 128;
+			player.pos.x = 128 * 32;
+			player.pos.x = 128 * 32;
 		}
 	}
 
@@ -427,45 +427,28 @@ void UpdateLocalCamera()
 
 void UpdateWorldCamera()
 {
+	camera.target.x = player.world.x;
+	camera.target.y = player.world.y;
+
 	if (zoomMode == 1)
 	{
-		if (camera.target.x < 128)
-			camera.target.x += GetFrameTime() * zoomScrollRate;
-		else if (camera.target.x > 128)
-			camera.target.x -= GetFrameTime() * zoomScrollRate;
-
-		if (camera.target.y < 128)
-			camera.target.y += GetFrameTime() * zoomScrollRate;
-		else if (camera.target.y > 128)
-			camera.target.y -= GetFrameTime() * zoomScrollRate;
-
-		camera.zoom = camera.zoom / zoomFactor;
-		if (camera.zoom < 1.0f)
+		camera.zoom -= 300 * GetFrameTime();
+		if (camera.zoom < 2.0f)
 		{
-			camera.target.x = 128;
-			camera.target.y = 128;
-			camera.zoom = 1.0f;
+			camera.zoom = 2.0f;
 			zoomMode = 0;
 		}
 	}
 	else if (zoomMode == 2)
 	{
-		if (camera.target.x < player.world.x)
-			camera.target.x += GetFrameTime() * zoomScrollRate;
-		else if (camera.target.x > player.world.x)
-			camera.target.x -= GetFrameTime() * zoomScrollRate;
-
-		if (camera.target.y < player.world.y)
-			camera.target.y += GetFrameTime() * zoomScrollRate;
-		else if (camera.target.y > player.world.y)
-			camera.target.y -= GetFrameTime() * zoomScrollRate;
-
-		camera.zoom = camera.zoom * zoomFactor;
+		camera.zoom += 300 * GetFrameTime();
 		if (camera.zoom > 100.f)
 		{
 			camera.zoom = 1.0f;
 			zoomMode = 0;
 			mode = MODE_LOCAL;
+			player.pos.x = 128 * 32;
+			player.pos.y = 128 * 32;
 		}
 	}
 }
@@ -553,7 +536,7 @@ void DrawLocal()
 void DrawGameplayScreen(void)
 {
 	// TODO: Draw GAMEPLAY screen here!
-	ClearBackground(BLACK);
+	ClearBackground(BLUE);
 
 	SetCurrentFontStyle("gameplaysmall");
 
