@@ -142,8 +142,8 @@ void InitGameplayScreen(void)
 	SetCurrentFontStyle("gameplaysmall");
 
 	SeedRandom(worldSeed);
-	
-	//heightMap = LoadImage("resources/world-height.png");
+
+	// heightMap = LoadImage("resources/world-height.png");
 
 	heightMap = GenerateHeightMap(worldSeed);
 
@@ -314,92 +314,50 @@ void UpdateGameInput()
 		}
 
 		int localX = player.pos.x / 32;
-		int localY = player.pos.y / 32;
+		int localY = (player.pos.y + 16) / 32;
 
 		float xInc = vel.x * GetFrameTime() * player.speed;
 		float yInc = vel.y * GetFrameTime() * player.speed;
 
-		if (vel.x > 0)
+		// set the rectangle to where the player will be after position increments.
+		Rectangle playerRec = {player.pos.x + xInc, player.pos.y + yInc + 16, 16, 16};
+
+		// check for collision with unpassable blocks, adjusting the playerRec based on any collisions that happen.
+		// check x movement first
+		if (vel.x != 0)
 		{
+			// determine if checking to the left or right.
+			int targetX = localX + (vel.x > 0 ? 1 : -1);
 
-			Rectangle rec = {player.pos.x + xInc, player.pos.y, 16, 32};
-
-			// check the top right
-			if (!IsPassable(localY * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, localY * 32, 32, 32}))
+			// check top and bottom corners in the direction player is moving
+			for (int targetY = localY; targetY < localY + 2; targetY++)
 			{
-				xInc = 0;
-				player.pos.x = localX * 32 + 16;
-			}
-
-			rec.x = player.pos.x + xInc;
-
-			// check the bottom right
-			if (!IsPassable((localY + 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
-			{
-				xInc = 0;
-				player.pos.x = localX * 32 + 16;
-			}
-		}
-		else if (vel.x < 0)
-		{
-			Rectangle rec = {player.pos.x + xInc, player.pos.y + yInc, 16, 32};
-
-			// check the top left
-			if (!IsPassable(localY * 256 + (localX - 1)) && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, localY * 32, 32, 32}))
-			{
-				xInc = 0;
-				player.pos.x = localX * 32;
-			}
-
-			rec.x = player.pos.x + xInc;
-
-			// check the bottom left
-			if (!IsPassable((localY + 1) * 256 + (localX - 1)) && CheckCollisionRecs(rec, (Rectangle){(localX - 1) * 32, (localY + 1) * 32, 32, 32}))
-			{
-				xInc = 0;
-				player.pos.x = localX * 32;
+				if (!IsPassable(targetY * 256 + targetX) && CheckCollisionRecs(playerRec, (Rectangle){targetX * 32, targetY * 32, 32, 32}))
+				{
+					playerRec.x = localX * 32 + (vel.x > 0 ? 16 : 0);
+				}
 			}
 		}
 
-		if (vel.y > 0)
+		// check y movement
+		if (vel.y != 0)
 		{
-			Rectangle rec = {player.pos.x, player.pos.y + yInc, 16, 32};
-			// check bottom left
-			if (!IsPassable((localY + 1) * 256 + localX) && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY + 1) * 32, 32, 32}))
-			{
-				yInc = 0;
-				player.pos.y = localY * 32;
-			}
+			// determine if checking to the top or bottom
+			int targetY = localY + (vel.y > 0 ? 1 : -1);
 
-			rec.y = player.pos.y + yInc;
-			// check bottom right
-			if (!IsPassable((localY + 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY + 1) * 32, 32, 32}))
+			// check left and right corners in the direction player is moving.
+			for (int targetX = localX; targetX < localX + 2; targetX++)
 			{
-				yInc = 0;
-				player.pos.y = localY * 32;
-			}
-		}
-		else if (vel.y < 0)
-		{
-			Rectangle rec = {player.pos.x, player.pos.y + yInc, 16, 32};
-			// check top left
-			if (!IsPassable((localY - 1) * 256 + localX) && CheckCollisionRecs(rec, (Rectangle){localX * 32, (localY - 1) * 32, 32, 32}))
-			{
-				yInc = 0;
-				player.pos.y = localY * 32;
-			}
-
-			rec.y = player.pos.y + yInc;
-			// check top right
-			if (!IsPassable((localY - 1) * 256 + (localX + 1)) && CheckCollisionRecs(rec, (Rectangle){(localX + 1) * 32, (localY - 1) * 32, 32, 32}))
-			{
-				yInc = 0;
-				player.pos.y = localY * 32;
+				if (!IsPassable(targetY * 256 + targetX) && CheckCollisionRecs(playerRec, (Rectangle){targetX * 32, targetY * 32, 32, 32}))
+				{
+					playerRec.y = localY * 32 + (vel.y > 0 ? 16 : 0);
+				}
 			}
 		}
 
-		player.pos.x += xInc;
-		player.pos.y += yInc;
+		// Update the player position to line up correctly with the playerRec.
+		player.pos.x = playerRec.x;
+		player.pos.y = playerRec.y - 16;
 	}
 	else if (mode == MODE_WORLD)
 	{
