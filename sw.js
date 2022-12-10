@@ -1,4 +1,4 @@
-const cacheName = "cache_name_1670631806";
+const cacheName = "cache_name_1670632792";
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(caches.open(cacheName));
